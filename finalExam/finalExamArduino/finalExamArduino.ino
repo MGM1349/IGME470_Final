@@ -27,16 +27,20 @@ float totalTime = 500;
 float savedTime = millis();
 
 void setup() {
+  //Sets up the pin modes for all the buttons
   pinMode(increaseView, INPUT);
   pinMode(decreaseView, INPUT);
   pinMode(gravity, INPUT);
   pinMode(antiGravity, INPUT);
 
+  //Begins the serial port
   Serial.begin(9600);
 }
 
 void loop() {
   
+  //Will have a half second timer before data
+  //is pushed out to the serial port
   float passedTime = millis() - savedTime;
   if(passedTime < totalTime){
     return;
@@ -46,45 +50,60 @@ void loop() {
   
   // read the state of the pushbutton value:
   gravityState = digitalRead(gravity);
+  
+  //get the photocell and the petentiametor values
   lightValue = analogRead(photocellIn);
   petentiametorValue = analogRead(petentiametorIn);
 
+  //gather the first 20 standing light levels
   if(amountCalculated < 20){
     totalValue += analogRead(photocellIn);
     amountCalculated++;
   }
+  //then calculate the mean of that
   else{
     meanValue = totalValue / 20;
     doneCalculating = true;
   }
 
+  //if the petentiametor value is greater than the middle
+  //plus some padding, send out a serial port of "left"
   if(petentiametorValue > (midPValue + 100)){
     Serial.println("left");
   }
     
+  //if the petentiametor value is greater than the middle
+  //plus some padding, send out a serial port of right
   if(petentiametorValue < (midPValue - 100)){
     Serial.println("right");
   }
 
+  //if the light level is greater than the mean value then 
+  //print out increaseSpeed
   if(lightValue > (meanValue + 125) && doneCalculating){
     Serial.println("increaseSpeed");
   }
 
+  //if the light level is less than the mean value then
+  //print out decreaseSpeed
   if(lightValue < (meanValue - 125) && doneCalculating){
     Serial.println("decreaseSpeed");
   }
 
   
-  // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
+  //check if the gravity button has been pushed if so then print that out
   if (gravityState == HIGH) {
     Serial.println("gravity");
   }
 
+  //check if the anti gravity button is high then print antigravity out
   antiGravityState = digitalRead(antiGravity);
   if(antiGravityState == HIGH){
     Serial.println("antigravity");
   }
 
+  //check for the buttons for the view state of the game
+  //if they have been pushed print that out the serial port
   icreaseViewState = digitalRead(increaseView);
   if(icreaseViewState == HIGH){
     Serial.println("increase");
